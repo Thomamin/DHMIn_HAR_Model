@@ -1,0 +1,67 @@
+DH Min's Machine Learning Project : 2014 Dec 20
+========================================================
+## 0. Summary 
+### This is a report describing how to build a human activity recoginition model with weight lifting exercise data provided by Groupware(http://groupware.les.inf.puc-rio.br/har) 
+### The human activity recognition model which predicts/classify weight lift activities, is built using 'gbm'method. 
+
+## 1. Data
+### For details of the data, refer the Groupware url.   
+### The training data and test data for this project are provided by instructor 
+### https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+### https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+## 2. Model building process
+### Load necessary packages
+```{r}
+library(caret)
+library(AppliedPredictiveModeling)
+```
+### read training data file and test data file
+```{r}
+training <- read.csv("./pml-training.csv")
+testing <- read.csv("./pml-testing.csv")
+```
+### delete meaningless columns,which filled with 'NA',from testing data.
+```{r}
+testing <- testing[,colSums(is.na(testing))<nrow(testing)]
+```
+### delete training data columns which are not used in testing data. Keeping 'classe' column.
+```{r}
+training <- subset(training, select = -c(X))
+testing <- subset(testing, select = -c(X))
+selectedColnames <- colnames(testing)
+selectedColnames <- c(selectedColnames, "classe")
+training <- training[ , which(names(training) %in% selectedColnames)]
+```
+### fitting a model with 'gbm'method. I chose 'gbm'method because it is a method that can be suitable for multi variable classification, well-known for being comparatively fast and accurate since it uses trees and boost for prediction.
+```{r}
+modelFit <- train(classe ~., data=training, method = "gbm")
+```
+## 3. Model  
+### Seems the model is reliable, it took a long time to learn but it shows very good accuracy and expected out of sample error rate is less than 1%.
+```{r}
+modelFit
+```
+### Visualized the model's feature
+```{r fig.width=7, fig.height=6}
+plot(modelFit)
+```
+```{r fig.width=7, fig.height=6}
+plot(modelFit, metric = "Kappa")
+```
+```{r fig.width=7, fig.height=6}
+plot(modelFit, plotType = "level")
+```
+```{r fig.width=7, fig.height=6}
+resampleHist(modelFit)
+```
+
+## 4. Prediction
+## predict with the model
+```{r}
+predictions <- predict(modelFit, newdata = testing )
+predictions
+```
+
+
+
